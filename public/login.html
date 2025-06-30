@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Admin Login</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <!-- ✅ Link to external JS -->
+    <script src="/js/login.js" defer></script>
+  </head>
+  <body class="bg-gray-100 h-screen flex items-center justify-center">
+    <div class="bg-white shadow-lg p-6 rounded-xl w-96">
+      <h2 class="text-xl font-bold text-center text-blue-600 mb-4">
+        🔐 Admin Login
+      </h2>
+      <form id="admin-form" class="space-y-4">
+        <input
+          id="admin-password"
+          type="password"
+          placeholder="Enter Admin Password"
+          class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        />
+        <button
+          type="submit"
+          class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+        >
+          Login
+        </button>
+      </form>
+    </div>
+  </body>
+</html>
