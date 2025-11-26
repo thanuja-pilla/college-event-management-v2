@@ -1,4 +1,4 @@
-require("dotenv").config(); //to load env variables
+require("dotenv").config(); // load env variables
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -41,7 +41,26 @@ app.post("/api/events", async (req, res) => {
   }
 });
 
-// Fallback route for frontend (optional)
+// DELETE event (only for qadmin)
+app.delete("/api/events/:id", async (req, res) => {
+  try {
+    const user = req.query.user; // check query param for user
+    if (user !== "qadmin") {
+      return res.status(403).json({ error: "❌ Unauthorized" });
+    }
+
+    const event = await Event.findByIdAndDelete(req.params.id);
+    if (!event) {
+      return res.status(404).json({ error: "❌ Event not found" });
+    }
+
+    res.json({ message: "✅ Event deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Server error while deleting event." });
+  }
+});
+
+// Fallback route for frontend
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });

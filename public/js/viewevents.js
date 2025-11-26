@@ -8,13 +8,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Show loading message
   container.innerHTML = `<p class="text-center text-gray-400">⏳ Loading events...</p>`;
 
+  // Detect environment (local vs production)
+  const baseUrl =
+    window.location.hostname === "localhost"
+      ? "http://localhost:10000"
+      : "https://college-event-management-v2.onrender.com";
+
   const params = new URLSearchParams(window.location.search);
   const filterType = params.get("type");
 
-  // Optional: Format date nicely
+  const isAdmin = true; // Set true if qadmin is logged in
+
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
-    if (isNaN(date)) return dateStr; // fallback
+    if (isNaN(date)) return dateStr;
     return date.toLocaleDateString("en-IN", {
       day: "numeric",
       month: "short",
@@ -23,7 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   try {
-    const res = await fetch("/api/events");
+    const res = await fetch(`${baseUrl}/api/events`);
     if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
 
     const events = await res.json();
@@ -64,12 +71,44 @@ document.addEventListener("DOMContentLoaded", async () => {
               ? `<div><a href="${event.url}" target="_blank" class="text-blue-500 hover:underline">🔗 Visit Event</a></div>`
               : ""
           }
+          ${
+            isAdmin
+              ? `<button class="deleteBtn text-red-500 text-xs mt-2" data-id="${event._id}">Delete</button>`
+              : ""
+          }
         </div>
       `
       )
       .join("");
+
+    // Delete button handler
+    document.querySelectorAll(".deleteBtn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.id;
+        if (!confirm("Are you sure you want to delete this event?")) return;
+
+        try {
+          const res = await fetch(`${baseUrl}/api/events/${id}?user=qadmin`, {
+            method: "DELETE",
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Delete failed");
+
+          alert(data.message);
+          window.location.reload();
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+    });
   } catch (err) {
     console.error("Error fetching events:", err);
-    container.innerHTML = `<p class="text-center text-red-600">❌ Failed to load events. Please try again later.</p>`;
+    container.innerHTML = `
+      <p class="text-center text-red-600">
+        ❌ Failed to load events. Please try again later.
+      </p>
+      <p class="text-center text-gray-500 text-xs">
+        ${err.message}
+      </p>`;
   }
 });
