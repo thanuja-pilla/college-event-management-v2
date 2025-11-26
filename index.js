@@ -8,31 +8,23 @@ const Event = require("./models/Event");
 
 const app = express();
 
-// ---------------------------
-// MIDDLEWARE
-// ---------------------------
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Serve STATIC FILES (VERY IMPORTANT)
+// Serve static files
 app.use(express.static(path.join(__dirname, "public")));
 
-// ---------------------------
-// DATABASE CONNECTION
-// ---------------------------
+// Database
 mongoose
   .connect(
     process.env.MONGO_URL ||
       "mongodb+srv://admin:admin123@cluster0.bj9j8wp.mongodb.net/college-events?retryWrites=true&w=majority"
   )
-  .then(() => console.log("✅ Connected to MongoDB"))
-  .catch((err) => console.error("❌ MongoDB Connection Error:", err));
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.error("Database Error:", err));
 
-// ---------------------------
-// API ROUTES
-// ---------------------------
-
-// Get all events
+// API Routes
 app.get("/api/events", async (req, res) => {
   try {
     const events = await Event.find().sort({ startDate: 1 });
@@ -42,7 +34,6 @@ app.get("/api/events", async (req, res) => {
   }
 });
 
-// Add event
 app.post("/api/events", async (req, res) => {
   try {
     const newEvent = new Event(req.body);
@@ -53,7 +44,6 @@ app.post("/api/events", async (req, res) => {
   }
 });
 
-// Delete event
 app.delete("/api/events/:id", async (req, res) => {
   try {
     await Event.findByIdAndDelete(req.params.id);
@@ -63,15 +53,11 @@ app.delete("/api/events/:id", async (req, res) => {
   }
 });
 
-// ---------------------------
-// SPA FALLBACK (PREVENT Cannot GET /)
-// ---------------------------
-app.get("*", (req, res) => {
+// FIX: Safe fallback route for SPA
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// ---------------------------
-// START SERVER
-// ---------------------------
+// Server
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
