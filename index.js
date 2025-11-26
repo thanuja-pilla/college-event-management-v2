@@ -3,7 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
-const Event = require("./models/Event"); // Make sure models/Event.js exists
+const Event = require("./models/Event");
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -21,7 +21,7 @@ mongoose
   .then(() => console.log("✅ Connected to MongoDB"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-// API Routes
+// Get all events
 app.get("/api/events", async (req, res) => {
   try {
     const events = await Event.find();
@@ -31,6 +31,7 @@ app.get("/api/events", async (req, res) => {
   }
 });
 
+// Add new event
 app.post("/api/events", async (req, res) => {
   try {
     const newEvent = new Event(req.body);
@@ -41,7 +42,7 @@ app.post("/api/events", async (req, res) => {
   }
 });
 
-// DELETE event (only for qadmin)
+// Delete event (secured for admin)
 app.delete("/api/events/:id", async (req, res) => {
   try {
     const user = req.query.user; // check query param for user
@@ -50,9 +51,7 @@ app.delete("/api/events/:id", async (req, res) => {
     }
 
     const event = await Event.findByIdAndDelete(req.params.id);
-    if (!event) {
-      return res.status(404).json({ error: "❌ Event not found" });
-    }
+    if (!event) return res.status(404).json({ error: "❌ Event not found" });
 
     res.json({ message: "✅ Event deleted successfully" });
   } catch (err) {
