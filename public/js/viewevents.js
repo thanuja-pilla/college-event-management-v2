@@ -12,7 +12,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
   const filterType = params.get("type");
 
-  // Admin check
   const isAdmin = localStorage.getItem("isAdmin") === "true";
 
   const formatDate = (dateStr) => {
@@ -28,6 +27,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     const res = await fetch(`${baseUrl}/api/events`);
     if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+
     const events = await res.json();
 
     const filteredEvents = filterType
@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       )
       .join("");
 
-    // Delete button functionality (only for admins)
+    // Delete button functionality
     if (isAdmin) {
       document.querySelectorAll(".deleteBtn").forEach((btn) => {
         btn.addEventListener("click", async () => {
@@ -83,9 +83,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (!confirm("Are you sure you want to delete this event?")) return;
 
           try {
-            // Pass admin query parameter
-            const res = await fetch(`${baseUrl}/api/events/${id}?user=admin`, {
+            const res = await fetch(`${baseUrl}/api/events/${id}`, {
               method: "DELETE",
+              headers: { "x-admin": "true" }, // ✅ pass admin info
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Delete failed");
