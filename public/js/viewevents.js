@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   container.innerHTML = `<p class="text-center text-gray-400">⏳ Loading events...</p>`;
 
-  // Base URL
   const baseUrl =
     window.location.hostname === "localhost"
       ? "http://localhost:10000"
@@ -29,7 +28,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     const res = await fetch(`${baseUrl}/api/events`);
     if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
-
     const events = await res.json();
 
     const filteredEvents = filterType
@@ -77,7 +75,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       )
       .join("");
 
-    // Delete button functionality
+    // Delete button functionality (only for admins)
     if (isAdmin) {
       document.querySelectorAll(".deleteBtn").forEach((btn) => {
         btn.addEventListener("click", async () => {
@@ -85,14 +83,14 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (!confirm("Are you sure you want to delete this event?")) return;
 
           try {
-            const res = await fetch(`${baseUrl}/api/events/${id}`, {
+            // Pass admin query parameter
+            const res = await fetch(`${baseUrl}/api/events/${id}?user=admin`, {
               method: "DELETE",
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Delete failed");
 
             alert(data.message);
-            // Remove deleted event from DOM
             btn.closest("div").remove();
           } catch (err) {
             alert(err.message);
