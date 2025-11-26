@@ -1,69 +1,77 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const path = require("path");
 const cors = require("cors");
 require("dotenv").config();
 
-const app = express();
-const PORT = process.env.PORT || 10000;
+const Event = require("./models/Event");
 
-// Middlewares
+const app = express();
+
+// ---------------------------
+// MIDDLEWARE
+// ---------------------------
 app.use(cors());
 app.use(express.json());
 
-// MongoDB connection
+// Serve STATIC FILES (VERY IMPORTANT)
+app.use(express.static(path.join(__dirname, "public")));
+
+// ---------------------------
+// DATABASE CONNECTION
+// ---------------------------
 mongoose
-  .connect(process.env.MONGO_URL)
+  .connect(
+    process.env.MONGO_URL ||
+      "mongodb+srv://admin:admin123@cluster0.bj9j8wp.mongodb.net/college-events?retryWrites=true&w=majority"
+  )
   .then(() => console.log("✅ Connected to MongoDB"))
-  .catch((err) => console.error("❌ Connection failed:", err));
+  .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 
-// Event schema
-const eventSchema = new mongoose.Schema({
-  name: String,
-  type: String,
-  startDate: String,
-  endDate: String,
-  url: String,
-  description: String,
-  eligibility: String,
-});
+// ---------------------------
+// API ROUTES
+// ---------------------------
 
-const Event = mongoose.model("Event", eventSchema);
-
-// GET all events
+// Get all events
 app.get("/api/events", async (req, res) => {
   try {
-    const events = await Event.find();
+    const events = await Event.find().sort({ startDate: 1 });
     res.json(events);
   } catch (err) {
-    res.status(500).json({ error: "Server error while fetching events." });
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-// POST a new event
+// Add event
 app.post("/api/events", async (req, res) => {
   try {
-    const event = new Event(req.body);
-    await event.save();
-    res.json({ message: "✅ Event added successfully" });
+    const newEvent = new Event(req.body);
+    await newEvent.save();
+    res.json({ message: "Event added!" });
   } catch (err) {
-    res.status(500).json({ error: "Server error while adding event." });
+    res.status(500).json({ error: "Failed to add event" });
   }
 });
 
-// DELETE an event (admin only)
+// Delete event
 app.delete("/api/events/:id", async (req, res) => {
   try {
-    // Check admin from header
-    const isAdmin = req.headers["x-admin"] === "true";
-    if (!isAdmin) return res.status(403).json({ error: "❌ Unauthorized" });
-
-    const event = await Event.findByIdAndDelete(req.params.id);
-    if (!event) return res.status(404).json({ error: "❌ Event not found" });
-
-    res.json({ message: "✅ Event deleted successfully" });
+    await Event.findByIdAndDelete(req.params.id);
+    res.json({ message: "Event deleted!" });
   } catch (err) {
-    res.status(500).json({ error: "Server error while deleting event." });
+    res.status(500).json({ error: "Failed to delete event" });
   }
 });
 
+// ---------------------------
+// SPA FALLBACK (PREVENT Cannot GET /)
+// ---------------------------
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// ---------------------------
+// START SERVER
+// ---------------------------
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
